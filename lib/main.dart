@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:vocabricks/services/local_deck_repository.dart';
-import 'package:vocabricks/views/card_screen.dart';
+import 'package:vocabulary_builder/services/local_deck_repository.dart';
+import 'package:vocabulary_builder/views/card_screen.dart';
 import 'providers/deck_provider.dart';
 
 void main() {

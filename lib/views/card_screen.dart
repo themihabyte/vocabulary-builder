@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:vocabricks/views/manage_deck_screen.dart';
+import 'package:vocabulary_builder/views/manage_deck_screen.dart';
 import '../widgets/card_widget.dart';
 import '../providers/deck_provider.dart';
 
@@ -64,7 +64,7 @@ class CardScreen extends StatelessWidget {
                       child: ElevatedButton(
                           onPressed: () {
                             deckProvider.reviewCard(currentCard, false);
-                            deckProvider.notifyListeners();
+                            // deckProvider.notifyListeners();
                           },
                           style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.redAccent),
@@ -76,7 +76,7 @@ class CardScreen extends StatelessWidget {
                       child: ElevatedButton(
                           onPressed: () {
                             deckProvider.reviewCard(currentCard, true);
-                            deckProvider.notifyListeners();
+                            // deckProvider.notifyListeners();
                           },
                           style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green),
