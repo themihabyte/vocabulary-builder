@@ -1,104 +1,145 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:vocabricks/algorithms/probabilistic/probabilistic_scheduling_data.dart';
+import 'package:vocabulary_builder/algorithms/probabilistic/probabilistic_scheduling_data.dart';
+import 'package:vocabulary_builder/views/card_list.dart';
 import '../algorithms/abstract_scheduling_data.dart';
 import '../providers/deck_provider.dart';
 import '../models/card_model.dart';
 
-// TODO : Place iconbutton to delete card, and toggle active state
-
-class ManageDeckScreen extends StatelessWidget {
+class ManageDeckScreen extends StatefulWidget {
   const ManageDeckScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Deck Management")),
-      body: Consumer<DeckProvider>(
-        builder: (context, deckProvider, child) {
-          final cards = deckProvider.cards;
-          if (cards.isEmpty) {
-            return const Center(child: Text("No cards in your deck."));
-          }
-          return ListView.builder(
-            itemCount: cards.length,
-            itemBuilder: (context, index) {
-              final card = cards[index];
-              return ListTile(
-                title: Text(card.word),
-                subtitle: Text(card.translation),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        card.isActive ? Icons.visibility : Icons.visibility_off,
-                        color: card.isActive ? Colors.green : Colors.grey,
-                      ),
-                      tooltip: card.isActive ? 'Set inactive' : 'Set active',
-                      onPressed: () {
-                        final updatedCard = CardModel(
-                          word: card.word,
-                          translation: card.translation,
-                          exampleContext: card.exampleContext,
-                          schedulingData: card.schedulingData,
-                          isActive: !card.isActive,
-                        );
-                        deckProvider.updateCard(index, updatedCard);
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.tune),
-                      onPressed: () => showDialog(
-                        context: context,
-                        builder: (context) => CardDialog(
-                          card: card,
-                          index: index,
-                        ),
-                      ),
-                    ),
-                  ],
+  State<ManageDeckScreen> createState() => _ManageDeckScreenState();
+}
+
+class _ManageDeckScreenState extends State<ManageDeckScreen> {
+  late DeckProvider _deckProvider;
+  late List<MutableCardModel> _localCards;
+
+  @override
+  void initState() {
+    super.initState();
+    _deckProvider = Provider.of<DeckProvider>(context, listen: false);
+    _localCards = _deckProvider.cards.toMutableList();
+  }
+
+  void _persistDeck() {
+    _deckProvider.updateDeck(_localCards.toImmutableList());
+  }
+
+  void _toggleCardActivity(MutableCardModel card) {
+    setState(() {
+      card.isActive = !card.isActive;
+    });
+  }
+
+  Future<bool?> _showBackDialog() {
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Save deck?'),
+            content: const Text('Would you like to save changes you made?'),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.pop(context, true);
+                  },
+                  child: const Text('Yes')),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context, false);
+                },
+                child: const Text(
+                  'No',
+                  style: TextStyle(color: Colors.redAccent),
                 ),
-              );
-            },
+              ),
+            ],
           );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () {
-          // Open a dialog to add a new card.
-          showDialog(
-            context: context,
-            builder: (context) {
-              return const CardDialog();
-            },
-          );
-        },
+        });
+  }
+
+  Future<void> _onEditCard(MutableCardModel card) async {
+    final updatedCard = await showDialog<MutableCardModel>(
+      context: context,
+      builder: (context) => _CardDialog(card: card),
+    );
+
+    setState(() {
+      if (updatedCard != null) {
+        final index = _localCards.indexOf(card);
+        if (index != -1) {
+          _localCards[index] = updatedCard;
+        }
+      }
+    });
+  }
+
+  Future<void> _onAddCard() async {
+    final newCard = await showDialog<MutableCardModel>(
+      context: context,
+      builder: (context) => const _CardDialog(),
+    );
+
+    if (newCard != null) {
+      setState(() {
+        _localCards.add(newCard);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) {
+          return;
+        }
+        final bool shouldSaveDeck = await _showBackDialog() ?? false;
+        if (shouldSaveDeck) {
+          _persistDeck();
+        }
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(title: const Text("Deck Management")),
+        body: CardList(
+          cards: _localCards,
+          onToggleActivity: _toggleCardActivity,
+          onEdit: _onEditCard,
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _onAddCard,
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }
 }
 
-class CardDialog extends StatefulWidget {
-  final CardModel? card; // If null, we're adding a new card.
-  final int? index; // If provided, we're editing an existing card.
+class _CardDialog extends StatefulWidget {
+  final MutableCardModel? card; // If null, we're adding a new card.
 
-  const CardDialog({super.key, this.card, this.index});
+  const _CardDialog({
+    this.card,
+  });
 
   @override
   _CardDialogState createState() => _CardDialogState();
 }
 
-class _CardDialogState extends State<CardDialog> {
+class _CardDialogState extends State<_CardDialog> {
   final _formKey = GlobalKey<FormState>();
   late String word;
   late String translation;
   late String exampleContext;
   late SchedulingData schedulingData;
   late bool isActive;
-  late DeckProvider deckProvider;
-  late int index;
 
   @override
   void initState() {
@@ -112,14 +153,12 @@ class _CardDialogState extends State<CardDialog> {
             lastReview: DateTime.now(), performanceScore: 0.0);
     // TODO: Change to more generic type of SchedulingData
     isActive = widget.card?.isActive ?? true;
-    deckProvider = Provider.of<DeckProvider>(context, listen: false);
-    index = widget.index ?? -1;
   }
 
   @override
   Widget build(BuildContext context) {
     // Determine whether we are in edit mode.
-    bool isEditing = widget.card != null && widget.index != null;
+    bool isEditing = widget.card != null;
 
     return AlertDialog(
       title: Text(isEditing ? "Edit Card" : "Add New Card"),
@@ -167,34 +206,30 @@ class _CardDialogState extends State<CardDialog> {
           child: const Text("Cancel"),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        if (isEditing)
-          TextButton(
-            child: const Text(
-              "Remove",
-              style: TextStyle(color: Colors.red),
-            ),
-            onPressed: () {
-              deckProvider.removeCard(index);
-              Navigator.of(context).pop();
-            },
-          ),
         TextButton(
           child: Text(isEditing ? "Save" : "Add"),
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               _formKey.currentState!.save();
-              final card = CardModel(
+              MutableCardModel result;
+              if (isEditing) {
+                result = widget.card!;
+                result
+                  ..word = word
+                  ..translation = translation
+                  ..exampleContext = exampleContext
+                  ..schedulingData = schedulingData
+                  ..isActive = isActive;
+              } else {
+                result = MutableCardModel(
                   word: word,
                   translation: translation,
                   exampleContext: exampleContext,
                   schedulingData: schedulingData,
-                  isActive: isActive);
-              if (isEditing) {
-                deckProvider.updateCard(widget.index!, card);
-              } else {
-                deckProvider.addCard(card);
+                  isActive: isActive,
+                );
               }
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(result);
             }
           },
         ),
