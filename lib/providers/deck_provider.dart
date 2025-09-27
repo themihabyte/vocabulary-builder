@@ -32,6 +32,14 @@ class DeckProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateDeck(List<CardModel> cards) {
+    _cards
+      ..clear()
+      ..addAll(cards);
+    repository.saveDeck(_cards);
+    notifyListeners();
+  }
+
   void removeCard(int index) {
     _cards.removeAt(index);
     repository.saveDeck(_cards);
