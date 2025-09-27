@@ -21,7 +21,7 @@ class LocalDeckRepository implements AbstractDeckRepository {
       final List<dynamic> jsonData = json.decode(contents);
       return jsonData.map((item) => CardModel.fromJson(item)).toList();
     } catch (e) {
-      print('Error loading deck: $e');
+      // print('Error loading deck: $e');
       return [];
     }
   }
@@ -31,5 +31,23 @@ class LocalDeckRepository implements AbstractDeckRepository {
     final file = await _localFile;
     final jsonData = cards.map((card) => card.toJson()).toList();
     await file.writeAsString(json.encode(jsonData));
+  }
+
+  @override
+  Future<void> removeCard(String id) {
+    // TODO: implement removeCard
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> upsertCard(CardModel card) {
+    // TODO: implement upsertCard
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<CardModel>> watchDeck() {
+    // TODO: implement watchDeck
+    throw UnimplementedError();
   }
 }
