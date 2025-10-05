@@ -1,16 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 
 import '../algorithms/abstract_scheduling_data.dart';
 import '../algorithms/probabilistic/probabilistic_scheduling_data.dart';
 
-const _uuid = Uuid();
-
-typedef Json = Map<String, Object?>;
+typedef Json = Map<String, dynamic>;
 
 mixin CardFields {
-  String get id;
+  String? get id;
   String get word;
   String get translation;
   String get exampleContext;
@@ -21,7 +18,7 @@ mixin CardFields {
 @immutable
 class CardModel with CardFields {
   @override
-  final String id;
+  final String? id;
   @override
   final String word;
   @override
@@ -34,13 +31,13 @@ class CardModel with CardFields {
   final bool isActive;
 
   CardModel({
-    String? id,
+    this.id,
     required this.word,
     required this.translation,
     required this.exampleContext,
     required this.schedulingData,
     this.isActive = true,
-  }) : id = id ?? _uuid.v4();
+  });
 
   factory CardModel.from(CardFields other) => CardModel(
         id: other.id,
@@ -51,8 +48,7 @@ class CardModel with CardFields {
         isActive: other.isActive,
       );
 
-  Json toJson() => <String, Object?>{
-        'id': id,
+  Json toJson() => {
         'word': word,
         'translation': translation,
         'example_context': exampleContext,
@@ -80,7 +76,7 @@ class CardModel with CardFields {
       schedulingData = ProbabilisticSchedulingData();
     }
     return CardModel(
-      id: json['id'] as String? ?? _uuid.v4(),
+      id: json['id'] as String?,
       word: json['word'] as String,
       translation: json['translation'] as String,
       exampleContext: json['example_context'] as String,
@@ -88,61 +84,62 @@ class CardModel with CardFields {
       isActive: (json['is_active'] as bool?) ?? true,
     );
   }
+
   @override
   String toString() {
     return 'CardModel(word: $word, translation: $translation, exampleContext: $exampleContext, schedulingData: $schedulingData, isActive: $isActive)';
   }
 }
 
-/// --- Mutable (for forms/editors) -------------------------------------------
-class MutableCardModel with CardFields {
-  @override
-  String id;
-  @override
-  String word;
-  @override
-  String translation;
-  @override
-  String exampleContext;
-  @override
-  SchedulingData schedulingData;
-  @override
-  bool isActive;
+// /// --- Mutable (for forms/editors) -------------------------------------------
+// class MutableCardModel with CardFields {
+//   @override
+//   String id;
+//   @override
+//   String word;
+//   @override
+//   String translation;
+//   @override
+//   String exampleContext;
+//   @override
+//   SchedulingData schedulingData;
+//   @override
+//   bool isActive;
 
-  MutableCardModel({
-    String? id,
-    required this.word,
-    required this.translation,
-    required this.exampleContext,
-    required this.schedulingData,
-    this.isActive = true,
-  }) : id = id ?? _uuid.v4();
+//   MutableCardModel({
+//     String? id,
+//     required this.word,
+//     required this.translation,
+//     required this.exampleContext,
+//     required this.schedulingData,
+//     this.isActive = true,
+//   });
 
-  factory MutableCardModel.from(CardFields other) => MutableCardModel(
-        id: other.id,
-        word: other.word,
-        translation: other.translation,
-        exampleContext: other.exampleContext,
-        schedulingData: other.schedulingData,
-        isActive: other.isActive,
-      );
-}
+//   factory MutableCardModel.from(CardFields other) => MutableCardModel(
+//         id: other.id,
+//         word: other.word,
+//         translation: other.translation,
+//         exampleContext: other.exampleContext,
+//         schedulingData: other.schedulingData,
+//         isActive: other.isActive,
+//       );
+// }
 
-/// --- Tiny conversion helpers -----------------------------------------------
-extension CardModelX on CardModel {
-  MutableCardModel toMutable() => MutableCardModel.from(this);
-}
+// /// --- Tiny conversion helpers -----------------------------------------------
+// extension CardModelX on CardModel {
+//   MutableCardModel toMutable() => MutableCardModel.from(this);
+// }
 
-extension MutableCardModelX on MutableCardModel {
-  CardModel toImmutable() => CardModel.from(this);
-}
+// extension MutableCardModelX on MutableCardModel {
+//   CardModel toImmutable() => CardModel.from(this);
+// }
 
-extension CardModelListX on List<CardModel> {
-  List<MutableCardModel> toMutableList() =>
-      map((c) => c.toMutable()).toList(growable: true);
-}
+// extension CardModelListX on List<CardModel> {
+//   List<MutableCardModel> toMutableList() =>
+//       map((c) => c.toMutable()).toList(growable: true);
+// }
 
-extension MutableCardModelListX on List<MutableCardModel> {
-  List<CardModel> toImmutableList() =>
-      map((c) => c.toImmutable()).toList(growable: false);
-}
+// extension MutableCardModelListX on List<MutableCardModel> {
+//   List<CardModel> toImmutableList() =>
+//       map((c) => c.toImmutable()).toList(growable: false);
+// }

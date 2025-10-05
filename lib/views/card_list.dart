@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:vocabulary_builder/models/card_model.dart';
 
 class CardList extends StatelessWidget {
-  final List<MutableCardModel> cards;
-  final Function(MutableCardModel) onToggleActivity;
-  final Function(MutableCardModel) onEdit;
+  final List<CardModel> cards;
+  final Function(CardModel) onToggleActivity;
+  final Function(CardModel, int) onEdit;
   const CardList({
     super.key,
     required this.cards,
@@ -24,6 +24,7 @@ class CardList extends StatelessWidget {
           card: cards[index],
           onToggleActivity: onToggleActivity,
           onEdit: onEdit,
+          index: index,
         );
       },
     );
@@ -31,16 +32,16 @@ class CardList extends StatelessWidget {
 }
 
 class CardListItem extends StatelessWidget {
-  final MutableCardModel card;
-  final Function(MutableCardModel) onToggleActivity;
-  final Function(MutableCardModel) onEdit;
-
-  const CardListItem({
-    super.key,
-    required this.card,
-    required this.onToggleActivity,
-    required this.onEdit,
-  });
+  final CardModel card;
+  final Function(CardModel) onToggleActivity;
+  final Function(CardModel, int) onEdit;
+  final int index;
+  const CardListItem(
+      {super.key,
+      required this.card,
+      required this.onToggleActivity,
+      required this.onEdit,
+      required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +59,7 @@ class CardListItem extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () => onEdit(card),
+            onPressed: () => onEdit(card, index),
           ),
         ],
       ),

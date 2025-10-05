@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import '../algorithms/abstract_card_selection_algorithm.dart';
 import '../algorithms/probabilistic/probabilistic_algorithm.dart';
@@ -7,49 +9,44 @@ import '../services/abstract_deck_repository.dart';
 
 class DeckProvider extends ChangeNotifier {
   final AbstractDeckRepository repository;
-  final List<CardModel> _cards = [];
+  final List<CardModel> _allCards = [];
   CardSelectionAlgorithm algorithm = ProbabilisticCardSelectionAlgorithm();
 
-  List<CardModel> get activeCards =>
-      _cards.where((card) => card.isActive).toList();
-  List<CardModel> get cards => List.unmodifiable(_cards);
+  late StreamSubscription<List<CardModel>> _deckSub;
 
-  // Inject the repository through the constructor.
   DeckProvider({required this.repository}) {
-    _loadDeck();
+    _deckSub = repository.watchDeck().listen(_onDeckChanged);
   }
 
-  Future<void> _loadDeck() async {
-    final loadedCards = await repository.loadDeck();
-    _cards.clear();
-    _cards.addAll(loadedCards);
-    notifyListeners();
-  }
+  List<CardModel> get activeCards => _allCards
+      .where((card) => card.isActive)
+      .toList(growable: false); // Unmodifiable?
+  List<CardModel> get allCards => List.unmodifiable(_allCards);
 
-  void addCard(CardModel card) {
-    _cards.add(card);
-    repository.saveDeck(_cards);
-    notifyListeners();
-  }
-
-  void updateDeck(List<CardModel> cards) {
-    _cards
+  void _onDeckChanged(List<CardModel> cards) {
+    _allCards
       ..clear()
       ..addAll(cards);
-    repository.saveDeck(_cards);
     notifyListeners();
   }
 
-  void removeCard(int index) {
-    _cards.removeAt(index);
-    repository.saveDeck(_cards);
-    notifyListeners();
+  @override
+  void dispose() {
+    _deckSub.cancel();
+    super.dispose();
   }
 
-  void updateCard(int index, CardModel newCard) {
-    _cards[index] = newCard;
-    repository.saveDeck(_cards);
-    notifyListeners();
+  void addCard(CardModel card) => repository.insertCard(card);
+
+  Future<void> updateCard(int index, CardModel card) =>
+      repository.updateCard(card);
+
+  Future<void> removeCard(int index) {
+    final id = _allCards[index].id;
+    if (id == null) {
+      throw StateError('Can\'t remove a card withour ID assigned');
+    }
+    return repository.removeCard(id);
   }
 
   /// Select the next card using the chosen algorithm.
@@ -57,7 +54,7 @@ class DeckProvider extends ChangeNotifier {
 
   /// Record a review:
   /// If [remembered] is true, increase the performance score; otherwise, reset it.
-  void reviewCard(CardModel card, bool remembered) {
+  void reviewCard(CardModel card, int index, bool remembered) {
     // Cast the scheduling data to our probabilistic implementation.
     final scheduling = card.schedulingData as ProbabilisticSchedulingData;
     scheduling.lastReview = DateTime.now();
@@ -67,6 +64,13 @@ class DeckProvider extends ChangeNotifier {
     } else {
       scheduling.performanceScore = 0.0;
     }
+    final reviewedCard = CardModel(
+        id: card.id,
+        word: card.word,
+        translation: card.translation,
+        exampleContext: card.exampleContext,
+        schedulingData: scheduling);
+    updateCard(index, reviewedCard);
     notifyListeners();
   }
 }

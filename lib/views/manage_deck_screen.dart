@@ -14,116 +14,58 @@ class ManageDeckScreen extends StatefulWidget {
 }
 
 class _ManageDeckScreenState extends State<ManageDeckScreen> {
-  late DeckProvider _deckProvider;
-  late List<MutableCardModel> _localCards;
-
-  @override
-  void initState() {
-    super.initState();
-    _deckProvider = Provider.of<DeckProvider>(context, listen: false);
-    _localCards = _deckProvider.cards.toMutableList();
-  }
-
-  void _persistDeck() {
-    _deckProvider.updateDeck(_localCards.toImmutableList());
-  }
-
-  void _toggleCardActivity(MutableCardModel card) {
+  void _toggleCardActivity(CardModel card) {
     setState(() {
-      card.isActive = !card.isActive;
+      // TODO: Implement activity toggle functionality
     });
   }
 
-  Future<bool?> _showBackDialog() {
-    return showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Save deck?'),
-            content: const Text('Would you like to save changes you made?'),
-            actions: [
-              TextButton(
-                  onPressed: () {
-                    Navigator.pop(context, true);
-                  },
-                  child: const Text('Yes')),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context, false);
-                },
-                child: const Text(
-                  'No',
-                  style: TextStyle(color: Colors.redAccent),
-                ),
-              ),
-            ],
-          );
-        });
-  }
-
-  Future<void> _onEditCard(MutableCardModel card) async {
-    final updatedCard = await showDialog<MutableCardModel>(
+  Future<void> _onEditCard(CardModel card, int index) async {
+    final deckProvider = context.read<DeckProvider>();
+    final updatedCard = await showDialog<CardModel>(
       context: context,
       builder: (context) => _CardDialog(card: card),
     );
 
-    setState(() {
-      if (updatedCard != null) {
-        final index = _localCards.indexOf(card);
-        if (index != -1) {
-          _localCards[index] = updatedCard;
-        }
-      }
-    });
+    if (updatedCard != null) {
+      deckProvider.updateCard(index, updatedCard);
+    }
+    // TODO: enforce Navigator return a result (define enum?). Throw exception if card was expected to return but didnt
   }
 
   Future<void> _onAddCard() async {
-    final newCard = await showDialog<MutableCardModel>(
+    final deckProvider = context.read<
+        DeckProvider>(); // TODO: understand context.read vs Consumer<DeckProvider>
+    final newCard = await showDialog<CardModel>(
       context: context,
       builder: (context) => const _CardDialog(),
     );
 
     if (newCard != null) {
-      setState(() {
-        _localCards.add(newCard);
-      });
+      deckProvider.addCard(newCard);
     }
+    // TODO: enforce Navigator return a result. Throw exception if card was expected to return but didnt
   }
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) {
-          return;
-        }
-        final bool shouldSaveDeck = await _showBackDialog() ?? false;
-        if (shouldSaveDeck) {
-          _persistDeck();
-        }
-        if (context.mounted) {
-          Navigator.pop(context);
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(title: const Text("Deck Management")),
-        body: CardList(
-          cards: _localCards,
-          onToggleActivity: _toggleCardActivity,
-          onEdit: _onEditCard,
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _onAddCard,
-          child: const Icon(Icons.add),
-        ),
+    return Scaffold(
+      appBar: AppBar(title: const Text("Deck Management")),
+      body: CardList(
+        cards: context.watch<DeckProvider>().allCards,
+        onToggleActivity: _toggleCardActivity,
+        onEdit: _onEditCard,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _onAddCard,
+        child: const Icon(Icons.add),
       ),
     );
   }
 }
 
 class _CardDialog extends StatefulWidget {
-  final MutableCardModel? card; // If null, we're adding a new card.
+  final CardModel? card; // If null, we're adding a new card.
 
   const _CardDialog({
     this.card,
@@ -135,6 +77,7 @@ class _CardDialog extends StatefulWidget {
 
 class _CardDialogState extends State<_CardDialog> {
   final _formKey = GlobalKey<FormState>();
+  late String? id;
   late String word;
   late String translation;
   late String exampleContext;
@@ -145,6 +88,7 @@ class _CardDialogState extends State<_CardDialog> {
   void initState() {
     super.initState();
     // Use existing values if editing, otherwise default to empty strings.
+    id = widget.card?.id;
     word = widget.card?.word ?? "";
     translation = widget.card?.translation ?? "";
     exampleContext = widget.card?.exampleContext ?? "";
@@ -211,24 +155,15 @@ class _CardDialogState extends State<_CardDialog> {
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               _formKey.currentState!.save();
-              MutableCardModel result;
-              if (isEditing) {
-                result = widget.card!;
-                result
-                  ..word = word
-                  ..translation = translation
-                  ..exampleContext = exampleContext
-                  ..schedulingData = schedulingData
-                  ..isActive = isActive;
-              } else {
-                result = MutableCardModel(
-                  word: word,
-                  translation: translation,
-                  exampleContext: exampleContext,
-                  schedulingData: schedulingData,
-                  isActive: isActive,
-                );
-              }
+              CardModel result;
+              result = CardModel(
+                id: id,
+                word: word,
+                translation: translation,
+                exampleContext: exampleContext,
+                schedulingData: schedulingData,
+                isActive: isActive,
+              );
               Navigator.of(context).pop(result);
             }
           },

@@ -1,9 +1,15 @@
 import '../models/card_model.dart';
 
 abstract class AbstractDeckRepository {
-  Future<List<CardModel>> loadDeck();
-  Future<void> saveDeck(List<CardModel> cards);
   Stream<List<CardModel>> watchDeck();
-  Future<void> upsertCard(CardModel card);
+
+  /// Persists `card` and returns once the write is enqueued.
+  ///
+  /// The returned `Future` completes before the generated Firebase key is
+  /// known. Consumers must wait for `watchDeck()` to emit the updated deck
+  /// (or read the card again) before relying on a non-null `id`.
+  Future<void> insertCard(CardModel card);
+
+  Future<void> updateCard(CardModel card);
   Future<void> removeCard(String id);
 }
