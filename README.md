@@ -1,6 +1,6 @@
-# Vocabricks — Minimal, Ad‑Free Vocabulary Builder
+# Vocabulary Builder — Minimal and Ad‑Free 
 
-Vocabricks is a simple, free vocabulary trainer built by an independent developer while learning a language. After trying a number of Play Store apps that were either too complex, too pricey, or full of ads, it was decided to build a minimal, clean, and maintainable app to learn efficiently — with no ads and no paywalls.
+Vocabulary Builder is a simple, free vocabulary trainer built by an independent developer while learning a language. After trying a number of Play Store apps that were either too complex, too pricey, or full of ads, it was decided to build a minimal, clean, and maintainable app to learn efficiently — with no ads and no paywalls.
 
 This project also serves as a practice ground to refine programming skills and design a small, well‑structured, multi‑platform Flutter application that’s easy to maintain and extend.
 
