@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -50,19 +47,32 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyA_W-Uy6r6kUDTql3pr_6HQWJcgXdukjfI',
+    apiKey: 'AIzaSyAl5Pai88hZZymPopUWVzxtQ8JOdnPIs9U',
     appId: '1:977282208119:android:be9b791d0907594762d172',
     messagingSenderId: '977282208119',
     projectId: 'vocabricks',
+    databaseURL: 'https://vocabricks-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'vocabricks.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyB94F1Wz2qGkMvZ5uBJh77OU0wy-zR6HfQ',
+    apiKey: 'AIzaSyDTfInqQFjB1UxKavF4pCedy_vBtxKR824',
     appId: '1:977282208119:ios:2b83709a4a8619c262d172',
     messagingSenderId: '977282208119',
     projectId: 'vocabricks',
+    databaseURL: 'https://vocabricks-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'vocabricks.firebasestorage.app',
     iosBundleId: 'io.github.themihabyte.vocabularybuilder',
   );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyD6ZdcL29emalJeTA60vnzxtiHNOYOnQj0',
+    appId: '1:977282208119:web:a1d562152e5c935062d172',
+    messagingSenderId: '977282208119',
+    projectId: 'vocabricks',
+    authDomain: 'vocabricks.firebaseapp.com',
+    databaseURL: 'https://vocabricks-default-rtdb.europe-west1.firebasedatabase.app',
+    storageBucket: 'vocabricks.firebasestorage.app',
+  );
+
 }
