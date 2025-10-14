@@ -3,12 +3,10 @@ import 'package:vocabulary_builder/models/card_model.dart';
 
 class CardList extends StatelessWidget {
   final List<CardModel> cards;
-  final Function(CardModel) onToggleActivity;
-  final Function(CardModel, int) onEdit;
+  final Function(CardModel) onEdit;
   const CardList({
     super.key,
     required this.cards,
-    required this.onToggleActivity,
     required this.onEdit,
   });
 
@@ -22,9 +20,7 @@ class CardList extends StatelessWidget {
       itemBuilder: (context, index) {
         return CardListItem(
           card: cards[index],
-          onToggleActivity: onToggleActivity,
           onEdit: onEdit,
-          index: index,
         );
       },
     );
@@ -33,15 +29,12 @@ class CardList extends StatelessWidget {
 
 class CardListItem extends StatelessWidget {
   final CardModel card;
-  final Function(CardModel) onToggleActivity;
-  final Function(CardModel, int) onEdit;
-  final int index;
-  const CardListItem(
-      {super.key,
-      required this.card,
-      required this.onToggleActivity,
-      required this.onEdit,
-      required this.index});
+  final Function(CardModel) onEdit;
+  const CardListItem({
+    super.key,
+    required this.card,
+    required this.onEdit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -51,15 +44,12 @@ class CardListItem extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: card.isActive
-                ? const Icon(Icons.visibility)
-                : const Icon(Icons.visibility_off),
-            onPressed: () => onToggleActivity(card),
+          Icon(
+            card.isActive ? Icons.visibility : Icons.visibility_off,
           ),
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () => onEdit(card, index),
+            onPressed: () => onEdit(card),
           ),
         ],
       ),

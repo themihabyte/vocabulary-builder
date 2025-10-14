@@ -20,31 +20,41 @@ class _ManageDeckScreenState extends State<ManageDeckScreen> {
     });
   }
 
-  Future<void> _onEditCard(CardModel card, int index) async {
-    final deckProvider = context.read<DeckProvider>();
-    final updatedCard = await showDialog<CardModel>(
+  Future<void> _openEditCardDialog(
+    CardModel? card,
+  ) async {
+    final cardDialogResult = await showDialog<_CardDialogResult>(
       context: context,
       builder: (context) => _CardDialog(card: card),
     );
 
-    if (updatedCard != null) {
-      deckProvider.updateCard(index, updatedCard);
+    if (cardDialogResult != null) {
+      _handleCardDialogResult(card, cardDialogResult);
     }
-    // TODO: enforce Navigator return a result (define enum?). Throw exception if card was expected to return but didnt
   }
 
-  Future<void> _onAddCard() async {
-    final deckProvider = context.read<
-        DeckProvider>(); // TODO: understand context.read vs Consumer<DeckProvider>
-    final newCard = await showDialog<CardModel>(
-      context: context,
-      builder: (context) => const _CardDialog(),
-    );
+  void _handleCardDialogResult(
+      CardModel? card, _CardDialogResult cardDialogResult) {
+    final deckProvider = context.read<DeckProvider>();
+    final int index;
+    final bool isEditing = card != null;
 
-    if (newCard != null) {
-      deckProvider.addCard(newCard);
+    if (isEditing) {
+      index = deckProvider.allCards.indexOf(card);
+    } else {
+      index = -1;
     }
-    // TODO: enforce Navigator return a result. Throw exception if card was expected to return but didnt
+
+    switch (cardDialogResult.code) {
+      case CardDialogResultCode.add:
+        deckProvider.addCard(cardDialogResult.card!);
+      case CardDialogResultCode.update:
+        deckProvider.updateCard(index, cardDialogResult.card!);
+      case CardDialogResultCode.remove:
+        deckProvider.removeCard(index);
+      case CardDialogResultCode.cancel:
+        break;
+    }
   }
 
   @override
@@ -53,11 +63,10 @@ class _ManageDeckScreenState extends State<ManageDeckScreen> {
       appBar: AppBar(title: const Text("Deck Management")),
       body: CardList(
         cards: context.watch<DeckProvider>().allCards,
-        onToggleActivity: _toggleCardActivity,
-        onEdit: _onEditCard,
+        onEdit: _openEditCardDialog,
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _onAddCard,
+        onPressed: () => _openEditCardDialog(null),
         child: const Icon(Icons.add),
       ),
     );
@@ -73,6 +82,28 @@ class _CardDialog extends StatefulWidget {
 
   @override
   _CardDialogState createState() => _CardDialogState();
+}
+
+enum CardDialogResultCode { add, remove, cancel, update }
+
+class _CardDialogResult {
+  final CardDialogResultCode code;
+  final CardModel? card;
+
+  const _CardDialogResult(this.code, [this.card]);
+
+  const _CardDialogResult.add(CardModel card)
+      : this(CardDialogResultCode.add, card);
+
+  const _CardDialogResult.update(CardModel card)
+      : this(CardDialogResultCode.update, card);
+
+  const _CardDialogResult.remove()
+      : this(
+          CardDialogResultCode.remove,
+        );
+
+  const _CardDialogResult.cancel() : this(CardDialogResultCode.cancel);
 }
 
 class _CardDialogState extends State<_CardDialog> {
@@ -142,14 +173,22 @@ class _CardDialogState extends State<_CardDialog> {
                 exampleContext = value ?? "";
               },
             ),
+            CheckboxListTile(
+                title: const Text('Active card'),
+                value: isActive,
+                onChanged: (bool? value) {
+                  setState(() {
+                    isActive = value ?? true;
+                  });
+                })
           ],
         ),
       ),
       actions: [
         TextButton(
-          child: const Text("Cancel"),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+            child: const Text("Cancel"),
+            onPressed: () =>
+                Navigator.of(context).pop(const _CardDialogResult.cancel())),
         TextButton(
           child: Text(isEditing ? "Save" : "Add"),
           onPressed: () {
@@ -164,10 +203,18 @@ class _CardDialogState extends State<_CardDialog> {
                 schedulingData: schedulingData,
                 isActive: isActive,
               );
-              Navigator.of(context).pop(result);
+              isEditing
+                  ? Navigator.of(context).pop(_CardDialogResult.update(result))
+                  : Navigator.of(context).pop(_CardDialogResult.add(result));
             }
           },
         ),
+        if (isEditing)
+          TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(const _CardDialogResult.remove());
+              },
+              child: const Text('Remove')),
       ],
     );
   }

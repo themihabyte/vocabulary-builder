@@ -42,6 +42,7 @@ class DeckProvider extends ChangeNotifier {
       repository.updateCard(card);
 
   Future<void> removeCard(int index) {
+    // TODO check if it safe to remove by index or we better use id or card instance
     final id = _allCards[index].id;
     if (id == null) {
       throw StateError('Can\'t remove a card withour ID assigned');
