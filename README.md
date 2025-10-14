@@ -7,8 +7,8 @@ This project also serves as a practice ground to refine programming skills and d
 ## Project Goals
 
 - Keep the experience simple and fast.
-- Stay free and ad‑free.
-- Keep the code maintainable and approachable for learning and extension
+- Stay free.
+- Keep the code maintainable and approachable for learning and extension.
 
 ## Features
 
@@ -19,10 +19,11 @@ This project also serves as a practice ground to refine programming skills and d
 
 Planned/TODO:
 
-- Offline‑first caching and better error handling.
-- Export/import deck data.
-- Additional review algorithms (e.g., SM‑2 variants, statistical, machine learning etc) and settings.
-- Possibility to have several decks
+- [ ] Offline caching and better error handling.
+- [ ] Export/import deck data.
+- [ ] Additional review algorithms (e.g., SM‑2 variants, statistical, machine learning etc) and settings.
+- [ ] Possibility to have several decks
+- [ ] Logging
 
 The codebase is intentionally small and attempted to be organized for clarity and maintainability.
 
