@@ -1,6 +1,6 @@
 # Vocabulary Builder
 
-Vocabulary Builder is a simple, free vocabulary trainer built by an independent developer while learning a language. After trying a number of Play Store apps that were either too complex, too pricey, or full of ads, it was decided to build a minimal, clean, and maintainable app to learn efficiently — with no ads and no paywalls.
+Vocabulary Builder is a simple, free vocabulary trainer built by an independent developer while learning a language. After trying a number of Play Store apps that were either too complex, too pricey, or full of ads, it was decided to build a minimal, clean, and maintainable app to learn efficiently.
 
 This project also serves as a practice ground to refine programming skills and design a small, well‑structured, multi‑platform Flutter application that’s easy to maintain and extend.
 
@@ -20,9 +20,10 @@ This project also serves as a practice ground to refine programming skills and d
 Planned/TODO:
 
 - [ ] Offline caching and better error handling.
+- [ ] Possibility to have several decks
+- [ ] Embed (Google) Translate API
 - [ ] Export/import deck data.
 - [ ] Additional review algorithms (e.g., SM‑2 variants, statistical, machine learning etc) and settings.
-- [ ] Possibility to have several decks
 - [ ] Logging
 
 The codebase is intentionally small and attempted to be organized for clarity and maintainability.
